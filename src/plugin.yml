@@ -1,11 +1,12 @@
 name: Warps
 main: me.polo.warps.Main
 author: Polo
-version: A1.0
+version: A1.3
 api-version: 1.17
 
 commands:
   warp:
   setwarp:
   delwarp:
+
   warpgui:

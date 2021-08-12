@@ -1,6 +1,5 @@
 package me.polo.warps;
 
-import me.polo.warps.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -9,6 +8,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class Warps implements CommandExecutor {
         if(sender instanceof Player){
             Player p = (Player) sender;
             if(cmd.getName().equalsIgnoreCase("setwarp")) {
-                if (p.hasPermission("admincore.setwarp")) {
+                if (p.hasPermission("warps.setwarp")) {
                     if (args.length == 0) {
                         p.sendMessage(ChatColor.RED + "Please specify a name");
                     } else if(args.length == 1){
@@ -33,15 +34,25 @@ public class Warps implements CommandExecutor {
 
                         name = args[0].toLowerCase();
 
+                        ItemStack hand = p.getInventory().getItemInMainHand();
+                        ItemStack hand2 = hand.clone();
+                        ItemMeta meta = hand2.getItemMeta();
+                        meta.setDisplayName(name);
+                        hand2.setItemMeta(meta);
+
                         plugin.getConfig().set("Warps." + name + ".X", loc.getX());
                         plugin.getConfig().set("Warps." + name + ".Y", loc.getY());
                         plugin.getConfig().set("Warps." + name + ".Z", loc.getZ());
                         plugin.getConfig().set("Warps." + name + ".World", loc.getWorld().getName());
                         plugin.getConfig().set("Warps." + name + ".Pitch", loc.getPitch());
                         plugin.getConfig().set("Warps." + name + ".Yaw", loc.getYaw());
-                        plugin.getConfig().set("Warps." + name + ".Item", p.getInventory().getItemInMainHand().getType());
+                        plugin.getConfig().set("Warps." + name + ".Item", String.valueOf(hand2.getType()));
                         plugin.saveConfig();
+
+                        WarpGUI.inv.addItem(hand2);
+
                         p.sendMessage(ChatColor.GREEN + "Warp " + name + " created successfully");
+                        p.sendMessage(String.valueOf(hand.getType()));
                     } else {
                         p.sendMessage(ChatColor.RED + "Insufficient Arguments");
                     }
@@ -51,17 +62,21 @@ public class Warps implements CommandExecutor {
             }
 
             if(cmd.getName().equalsIgnoreCase("delwarp")){
-                if (args.length == 0) {
-                    p.sendMessage(ChatColor.RED + "Please specify a name");
-                } else if(args.length == 1) {
-                    name = args[0].toLowerCase();
-                    if (plugin.getConfig().getConfigurationSection("Warps." + name) == null) {
-                        p.sendMessage(ChatColor.RED + "Warp " + name + " doesn't exist");
-                    } else {
-                        plugin.getConfig().set("Warps." + name, null);
-                        plugin.saveConfig();
-                        p.sendMessage(ChatColor.RED + "Warp " + name + " deleted successfully");
+                if(p.hasPermission("warps.delwarp")) {
+                    if (args.length == 0) {
+                        p.sendMessage(ChatColor.RED + "Please specify a name");
+                    } else if (args.length == 1) {
+                        name = args[0].toLowerCase();
+                        if (plugin.getConfig().getConfigurationSection("Warps." + name) == null) {
+                            p.sendMessage(ChatColor.RED + "Warp " + name + " doesn't exist");
+                        } else {
+                            plugin.getConfig().set("Warps." + name, null);
+                            plugin.saveConfig();
+                            p.sendMessage(ChatColor.RED + "Warp " + name + " deleted successfully");
+                        }
                     }
+                } else {
+                    p.sendMessage(ChatColor.RED + "Insufficient Permission");
                 }
             }
 
